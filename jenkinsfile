@@ -12,6 +12,7 @@ pipeline {
         NEXUS_URL = "nexus.wendellsystems.com"
         NEXUS_REPOSITORY = "petclinic-repo"
         NEXUS_CREDENTIAL_ID = "nexus_creds"
+        DEV_HOST = "stage.wendellsystems.com"
     }
 
 
@@ -20,14 +21,12 @@ pipeline {
             steps {
                 git branch: 'master', credentialsId: '819d712c-9d8d-4eec-97c5-94d217a0ecc4', url: 'https://github.com/SurenGevorgyan/spring-petclinic'
             }
-
         }
         
         stage ('Build') {
             steps {
                 sh 'mvn -Dmaven.test.failure.ignore=true install'
             }
- 
         }
 
         stage('Checkstyle') {
@@ -44,7 +43,7 @@ pipeline {
                     recordIssues enabledForFailure: true, tool: cpd(pattern: '**/target/cpd.xml')
                     recordIssues enabledForFailure: true, tool: pmdParser(pattern: '**/target/pmd.xml')
                 }
-    }
+            }
         }
 
         stage("publish to nexus") {
@@ -90,17 +89,41 @@ pipeline {
             }
         }
         
-        /*
-        stage ('Test') {
-            
+        stage ('Deploy to Test') {
+            steps {
+                sshagent(credentials : ['private']) {
+                sh "ssh -o StrictHostKeyChecking=no  -l ec2-user ${env.DEV_HOST} \"echo \"bash script.bash\" | at now + 1 min\""
+                }
+            }
         }
-        stage ('Deploy') {
-            
+
+        stage ('Regressaion Testing') {
+            steps {
+                sh 'echo Deploy'
+            }
         }
-        stage ('Monitor') {
-            
+
+        stage('Approval') {
+            // no agent, so executors are not used up when waiting for approvals
+            agent none
+            steps {
+                script {
+                    def deploymentDelay = input id: 'Deploy', message: 'Deploy to production?', submitter: 'rkivisto,admin', parameters: [choice(choices: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24'], description: 'Hours to delay deployment?', name: 'deploymentDelay')]
+                    sleep time: deploymentDelay.toInteger(), unit: 'HOURS'
+                }
+            }
         }
-        */
- 
+
+        stage ('Production Deployment') {
+            steps {
+                sh 'echo Deploy'
+            }
+        }
+
+        stage ('Smoke Test') {
+            steps {
+                sh 'echo Deploy'
+            }
+        }
     }
 }
