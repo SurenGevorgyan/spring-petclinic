@@ -92,11 +92,21 @@ pipeline {
         stage ('Deploy to Test') {
             steps {
                 sshagent(credentials : ['private']) {
+                sh "sleep 5"
                 sh "ssh -o StrictHostKeyChecking=no  -l ec2-user ${env.DEV_HOST} \"echo \"bash script.bash\" | at now + 1 min\""
+                sh "sleep 30"
+                }
+            }
+
+            post {
+                success {
+                    timeout(time: 3, unit: 'MINUTES') {
+                    sh "curl --retry 300 --retry-delay 5 https://stage.wendellsystems.com"
+                    }
                 }
             }
         }
-
+        
         stage ('Regressaion Testing') {
             steps {
                 sh 'echo Deploy'
