@@ -13,6 +13,7 @@ pipeline {
         NEXUS_REPOSITORY = "petclinic-repo"
         NEXUS_CREDENTIAL_ID = "nexus_creds"
         DEV_HOST = "stage.wendellsystems.com"
+        TEMP = "temp"
     }
 
 
