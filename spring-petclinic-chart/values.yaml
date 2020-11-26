@@ -1,0 +1,6 @@
+app:
+   name: spring-petclinic-chart
+   replica: 2
+
+image:
+     name: nginx

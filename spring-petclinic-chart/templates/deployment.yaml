@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Values.app.name }}
+  name: {{ .Values.app.name }}
+spec:
+  replicas: {{ .Values.app.replica }}
+  selector:
+    matchLabels:
+      app: {{ .Values.app.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}
+    spec:
+      containers:
+      - image: docker.wendellsystems.com/repository/spring-petclinic:v1.0.16
+        name: private-reg-container
+      imagePullSecrets:
+      - name: regcred
